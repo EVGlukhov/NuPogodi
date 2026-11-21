@@ -1,0 +1,5 @@
+WIDTH = 800
+HEIGHT = 600
+TITLE = "Nu, pogodi!"
+FPS = 60
+BACKGROUND_COLOR = "skyblue"
