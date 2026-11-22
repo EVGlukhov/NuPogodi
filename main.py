@@ -1,54 +1,49 @@
-from pygame.surface import Surface
+"""Initialize the window and run the Pygame application loop."""
+
 import pygame
+
 import config
-
-
-def draw_game(
-    surface: pygame.Surface,
-    title_font: pygame.font.Font
-) -> None:
-    surface.fill(config.BACKGROUND_COLOR)
-
-    pygame.draw.rect(
-        surface,
-        config.CONSOLE_COLOR,
-        config.CONSOLE_RECT,
-        border_radius=config.CONSOLE_RADIUS
-    )
-
-    pygame.draw.rect(
-        surface,
-        config.SCREEN_FRAME_COLOR,
-        config.SCREEN_FRAME_RECT,
-        border_radius=config.SCREEN_FRAME_RADIUS,
-    )
-
-    pygame.draw.rect(
-        surface,
-        config.PLAYFIELD_COLOR,
-        config.PLAYFIELD_RECT
-    )
-
-    title: Surface = title_font.render(config.TITLE, True, config.TITLE_COLOR)
-    surface.blit(title, title.get_rect(center=config.TITLE_POSITION))
+from game import Game
 
 
 def main() -> None:
+    """Run the game until the player closes the window or presses Escape."""
     pygame.init()
-
-    screen: Surface = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
+    screen = pygame.display.set_mode(
+        (config.WIDTH, config.HEIGHT),
+        pygame.RESIZABLE,
+    )
     pygame.display.set_caption(config.TITLE)
-    title_font = pygame.font.Font(None, config.TITLE_FONT_SIZE)
-    clock = pygame.time.Clock()
 
+    canvas = pygame.Surface((config.GAME_WIDTH, config.GAME_HEIGHT)).convert()
+    game = Game()
+    clock = pygame.time.Clock()
     running = True
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        draw_game(screen, title_font)
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+            else:
+                game.handle_event(event)
+
+        game.update(clock.tick(config.FPS) / 1000)
+        game.draw(canvas)
+
+        scale = min(
+            screen.get_width() / config.GAME_WIDTH,
+            screen.get_height() / config.GAME_HEIGHT,
+        )
+        scaled_size = (
+            round(config.GAME_WIDTH * scale),
+            round(config.GAME_HEIGHT * scale),
+        )
+        frame = pygame.transform.smoothscale(canvas, scaled_size)
+        screen.fill(config.WINDOW_BACKGROUND)
+        screen.blit(frame, frame.get_rect(center=screen.get_rect().center))
         pygame.display.flip()
-        clock.tick(config.FPS)
 
     pygame.quit()
 
